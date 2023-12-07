@@ -2,6 +2,7 @@ package okta
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
@@ -247,6 +248,7 @@ func (p *FrameworkProvider) Configure(ctx context.Context, req provider.Configur
 func (p *FrameworkProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewOrgMetadataDataSource,
+		NewLogStreamDataSource,
 	}
 }
 
@@ -263,4 +265,21 @@ func (p *FrameworkProvider) Resources(_ context.Context) []func() resource.Resou
 		NewPolicyDeviceAssuranceMacOSResource,
 		NewPolicyDeviceAssuranceWindowsResource,
 	}
+}
+
+func dataSourceConfiguration(req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) *Config {
+	if req.ProviderData == nil {
+		return nil
+	}
+
+	config, ok := req.ProviderData.(*Config)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+		return nil
+	}
+
+	return config
 }
